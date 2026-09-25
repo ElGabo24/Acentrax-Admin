@@ -1,0 +1,67 @@
+name: Build & Deploy Admin
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-admin
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      # ci en vez de install: respeta el lockfile al pie de la letra.
+      # Un install puede resolver versiones distintas a las que probaste.
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar
+        env:
+          VITE_API_URL: https://api.acentrax.com.mx/api
+        run: npm run build
+
+      # Falla aquí y no a medio rsync si el build salió vacío.
+      - name: Verificar el build
+        run: |
+          test -f dist/index.html || { echo "No se generó dist/index.html"; exit 1; }
+          echo "Archivos: $(find dist -type f | wc -l)"
+
+      # HETZNER_SSH_KEY es una llave DEDICADA a este repo, distinta de la del
+      # panel y la landing: así se puede revocar una sin tocar las demás.
+      - name: Preparar la llave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.HETZNER_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.HETZNER_HOST }} >> ~/.ssh/known_hosts
+
+      # --delete borra del servidor lo que ya no existe en el build. Sin eso
+      # se acumulan bundles viejos con hashes que nadie referencia.
+      #
+      # index.html va AL FINAL, en un rsync aparte: si se subiera primero,
+      # durante unos segundos apuntaría a assets que todavía no llegaron y
+      # quien recargara en ese momento vería la página rota.
+      - name: Subir assets
+        run: |
+          rsync -avz --delete --exclude 'index.html' \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            dist/ \
+            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/admin/
+
+      - name: Subir index.html
+        run: |
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            dist/index.html \
+            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/admin/
