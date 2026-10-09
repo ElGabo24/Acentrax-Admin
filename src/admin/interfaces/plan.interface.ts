@@ -9,6 +9,7 @@ export interface AdminPlan {
     maxUsuarios: number | null
     maxProductos: number | null
     maxUbicaciones: number | null
+    maxDispositivos: number | null
     maxMensajesMes: number | null
     modulos: string[]
     stripePriceMensual: string | null
@@ -39,6 +40,7 @@ export interface PlanPayload {
     maxUsuarios: number | null
     maxProductos: number | null
     maxUbicaciones: number | null
+    maxDispositivos: number | null
     maxMensajesMes: number | null
     modulos: string[]
     stripePriceMensual: string | null

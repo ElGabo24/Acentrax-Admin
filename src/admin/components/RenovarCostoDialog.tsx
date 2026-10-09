@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { ApiError, mensajeDeError } from '@/api/apiError'
-import { getCostos, renovarCosto } from '../actions/finanzas/costos.actions'
-import type { CostoOperativo, RenovarCostoPayload } from '../interfaces/costo.interface'
+import type { CostoOperativo } from '../interfaces/costo.interface'
+import { costosQueryOptions, useRenovarCosto } from '../queries/costos.queries'
+import { finanzasKeys } from '../queries/finanzas.queries'
+import { invalidar } from '../queries/shared'
 import { dinero, fechaDia } from '../utils/formato'
 
 const inputClass =
@@ -55,11 +57,8 @@ const Formulario = ({ costo, onClose }: { costo: CostoOperativo; onClose: () => 
         return null
     })()
 
-    const mutation = useMutation({
-        mutationFn: (payload: RenovarCostoPayload) => renovarCosto(costo.id, payload),
+    const mutation = useRenovarCosto(costo.id, {
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'costos'] })
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'finanzas'] })
             toast.success('Monto actualizado. Los meses anteriores no cambian.')
             onClose()
         },
@@ -68,11 +67,11 @@ const Formulario = ({ costo, onClose }: { costo: CostoOperativo; onClose: () => 
 
             // Otra renovación (o un doble clic) ya cerró esta versión: se recarga
             // la lista y se dice cuál es la vigente, para que edite esa.
-            const costos = await queryClient.fetchQuery({ queryKey: ['admin', 'costos'], queryFn: getCostos, staleTime: 0 })
+            const costos = await queryClient.fetchQuery({ ...costosQueryOptions(), staleTime: 0 })
             const vigente = costos.find(
                 (c) => c.recurrente && c.fechaFin === null && c.concepto.toLowerCase() === costo.concepto.toLowerCase()
             )
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'finanzas'] })
+            void invalidar(queryClient, finanzasKeys.all)
             toast.warning(
                 vigente
                     ? `Esa versión ya estaba cerrada. La vigente de «${vigente.concepto}» es ${dinero(vigente.montoMxn, 'MXN', 0)}${SUFIJO[vigente.frecuencia ?? 'MENSUAL']} desde el ${fechaDia(vigente.fecha)}.`

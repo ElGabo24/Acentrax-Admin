@@ -7,9 +7,9 @@ import type {
     RenovarCostoResponse,
 } from '../../interfaces/costo.interface'
 
-export const getCostos = async (): Promise<CostoOperativo[]> => {
+export const getCostos = async (signal?: AbortSignal): Promise<CostoOperativo[]> => {
     try {
-        const { data } = await adminApi.get<CostoOperativo[]>('/admin/costos-operativos')
+        const { data } = await adminApi.get<CostoOperativo[]>('/admin/costos-operativos', { signal })
         return data
     } catch (error) {
         throw normalizeApiError(error)

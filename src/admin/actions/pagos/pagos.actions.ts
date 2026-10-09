@@ -9,11 +9,13 @@ export const TAMANIO_MAXIMO = 100
 export const getPagos = async (
     filtros: PagosFiltros,
     pagina: number,
-    tamanio = TAMANIO_MAXIMO
+    tamanio = TAMANIO_MAXIMO,
+    signal?: AbortSignal
 ): Promise<PageResponse<AdminPago>> => {
     try {
         const { data } = await adminApi.get<PageResponse<AdminPago>>('/admin/pagos', {
             params: { ...filtros, pagina, tamanio },
+            signal,
         })
         return data
     } catch (error) {

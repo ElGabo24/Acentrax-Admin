@@ -1,15 +1,15 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/api/apiError'
-import { getEmpresa } from '../actions/empresas/empresas.actions'
-import { getPlanes } from '../actions/planes/getPlanes.action'
 import { CambioSuscripcionDialog, type AccionSuscripcion } from '../components/CambioSuscripcionDialog'
 import { EstadoBadge } from '../components/EstadoBadge'
+import { SaldoMensajesSection } from '../components/SaldoMensajesSection'
 import type { AdminSuscripcion, AdminUsoPlan } from '../interfaces/empresa.interface'
+import { useEmpresa } from '../queries/empresas.queries'
+import { usePlanes } from '../queries/planes.queries'
 import { dinero, fechaCorta, haceCuanto, RECURSO_LABEL } from '../utils/formato'
 
 const Dato = ({ etiqueta, children }: { etiqueta: string; children: React.ReactNode }) => (
@@ -63,12 +63,8 @@ export const EmpresaDetallePage = () => {
     const id = Number(useParams().id)
     const [accion, setAccion] = useState<AccionSuscripcion | null>(null)
 
-    const { data: empresa, isLoading, error, refetch } = useQuery({
-        queryKey: ['admin', 'empresa', id],
-        queryFn: () => getEmpresa(id),
-        enabled: Number.isFinite(id),
-    })
-    const { data: planes } = useQuery({ queryKey: ['admin', 'planes'], queryFn: getPlanes })
+    const { data: empresa, isLoading, error, refetch } = useEmpresa(id)
+    const { data: planes } = usePlanes()
 
     const volver = (
         <Link to="/" className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground hover:text-foreground">
@@ -94,7 +90,7 @@ export const EmpresaDetallePage = () => {
     const s = empresa.suscripcion
 
     return (
-        <div className="max-w-4xl space-y-6">
+        <div className="space-y-6">
             {volver}
 
             <header className="flex flex-wrap items-start justify-between gap-3">
@@ -132,6 +128,8 @@ export const EmpresaDetallePage = () => {
                     </ul>
                 </section>
             )}
+
+            <SaldoMensajesSection empresaId={empresa.id} />
 
             <section className="space-y-3 surface p-5">
                 <h2 className="text-base font-semibold">Pagos</h2>

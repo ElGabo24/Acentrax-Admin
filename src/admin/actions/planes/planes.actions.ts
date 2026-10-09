@@ -2,9 +2,9 @@ import { adminApi } from '@/api/AdminApi'
 import { normalizeApiError } from '@/api/apiError'
 import type { AdminPlan, ModuloPlan, PlanPayload } from '../../interfaces/plan.interface'
 
-export const getModulosPlan = async (): Promise<ModuloPlan[]> => {
+export const getModulosPlan = async (signal?: AbortSignal): Promise<ModuloPlan[]> => {
     try {
-        const { data } = await adminApi.get<ModuloPlan[]>('/admin/planes/modulos')
+        const { data } = await adminApi.get<ModuloPlan[]>('/admin/planes/modulos', { signal })
         return data
     } catch (error) {
         throw normalizeApiError(error)

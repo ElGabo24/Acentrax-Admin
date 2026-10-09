@@ -5,7 +5,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#073957" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/icono-16.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icono-32.png" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/icono-48.png" />
+  <link rel="apple-touch-icon" href="/icono-180.png" />
+  <link rel="manifest" href="/site.webmanifest" />
   <title>Acentrax · Administración</title>
+  <!-- Aplica el tema antes del primer pintado para que no haya un destello claro al abrir en oscuro.
+       Misma lógica y clave que src/lib/useThemeStore.ts: lo elegido, o si no, el sistema. -->
+  <script>
+    try {
+      var t = localStorage.getItem('adm_theme')
+      var oscuro = t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.classList.toggle('dark', oscuro)
+    } catch (e) { }
+  </script>
 </head>
 
 <body>

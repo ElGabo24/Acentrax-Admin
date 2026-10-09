@@ -5,7 +5,9 @@ import { AdminLayout } from './admin/layouts/AdminLayout'
 import { EmpresasPage } from './admin/pages/EmpresasPage'
 import { FinanzasPage } from './admin/pages/FinanzasPage'
 import { PagosPage } from './admin/pages/PagosPage'
+import { PaquetesMensajesPage } from './admin/pages/PaquetesMensajesPage'
 import { PlanesPage } from './admin/pages/PlanesPage'
+import { RecetasPage } from './admin/pages/RecetasPage'
 import { EmpresaDetallePage } from './admin/pages/EmpresaDetallePage'
 
 export const appRouter = createBrowserRouter([
@@ -22,6 +24,8 @@ export const appRouter = createBrowserRouter([
                     { path: '/', element: <EmpresasPage /> },
                     { path: '/empresas/:id', element: <EmpresaDetallePage /> },
                     { path: '/planes', element: <PlanesPage /> },
+                    { path: '/paquetes-mensajes', element: <PaquetesMensajesPage /> },
+                    { path: '/recetas', element: <RecetasPage /> },
                     { path: '/pagos', element: <PagosPage /> },
                     { path: '/finanzas', element: <FinanzasPage /> },
                 ],

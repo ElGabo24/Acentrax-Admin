@@ -2,9 +2,9 @@ import { adminApi } from '@/api/AdminApi'
 import { normalizeApiError } from '@/api/apiError'
 import type { ComisionPasarela } from '../../interfaces/comisionPasarela.interface'
 
-export const getComisionesPasarela = async (): Promise<ComisionPasarela[]> => {
+export const getComisionesPasarela = async (signal?: AbortSignal): Promise<ComisionPasarela[]> => {
     try {
-        const { data } = await adminApi.get<ComisionPasarela[]>('/admin/comisiones-pasarela')
+        const { data } = await adminApi.get<ComisionPasarela[]>('/admin/comisiones-pasarela', { signal })
         return data
     } catch (error) {
         throw normalizeApiError(error)

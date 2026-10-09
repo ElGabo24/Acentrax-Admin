@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { ChevronRight, Search, X } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { getEmpresas } from '../actions/empresas/empresas.actions'
-import { getPlanes } from '../actions/planes/getPlanes.action'
 import { EstadoBadge } from '../components/EstadoBadge'
 import { PageHeader } from '../components/PageHeader'
 import { MetricasBlock } from '../components/MetricasBlock'
 import type { EstadoSuscripcion, OrdenEmpresas } from '../interfaces/empresa.interface'
+import { useEmpresas } from '../queries/empresas.queries'
+import { usePlanes } from '../queries/planes.queries'
 import { ESTADO_LABEL, ESTADOS, haceCuanto } from '../utils/formato'
 
 const TAMANIO = 100
@@ -56,13 +55,15 @@ export const EmpresasPage = () => {
         return () => clearTimeout(t)
     })
 
-    const { data: planes } = useQuery({ queryKey: ['admin', 'planes'], queryFn: getPlanes })
+    const { data: planes } = usePlanes()
 
-    const { data, isLoading, isError, isFetching, refetch } = useQuery({
-        queryKey: ['admin', 'empresas', { estado, plan, busqueda, orden, pagina }],
-        queryFn: () =>
-            getEmpresas({ estado, plan, busqueda: busqueda || undefined, orden, pagina, tamanio: TAMANIO }),
-        placeholderData: (anterior) => anterior,
+    const { data, isLoading, isError, isFetching, refetch } = useEmpresas({
+        estado,
+        plan,
+        busqueda: busqueda || undefined,
+        orden,
+        pagina,
+        tamanio: TAMANIO,
     })
 
     const limpiar = () => {

@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { mensajeDeError } from '@/api/apiError'
-import { borrarCosto, getCostos } from '../actions/finanzas/costos.actions'
 import type { CostoOperativo } from '../interfaces/costo.interface'
+import { useBorrarCosto, useCostos } from '../queries/costos.queries'
 import { CATEGORIA_LABEL, dinero, fechaDia } from '../utils/formato'
 import { CostoFormDialog } from './CostoFormDialog'
 import { RenovarCostoDialog } from './RenovarCostoDialog'
@@ -16,12 +16,12 @@ const SUFIJO = { MENSUAL: '/mes', ANUAL: '/año' } as const
 const clave = (concepto: string) => concepto.trim().toLowerCase()
 
 /** "$350/mes", con el original entre paréntesis si el gasto está en otra moneda. */
-const MontoCosto = ({ c }: { c: CostoOperativo }) => (
-    <span className="tabular-nums">
+const MontoCosto = ({ c, enBloque }: { c: CostoOperativo; enBloque?: boolean }) => (
+    <span className={cn('tabular-nums', enBloque && 'block')}>
         {dinero(c.montoMxn, 'MXN', 0)}
         {c.frecuencia ? SUFIJO[c.frecuencia] : ''}
         {c.moneda !== 'MXN' && (
-            <span className="ml-1 text-xs text-muted-foreground">
+            <span className={cn('text-xs text-muted-foreground', enBloque ? 'block' : 'ml-1')}>
                 ({c.monto.toLocaleString('es-MX')} {c.moneda} × {c.tipoCambio})
             </span>
         )}
@@ -36,18 +36,33 @@ interface FilaProps {
     detalle?: React.ReactNode
 }
 
+// En pantalla ancha las columnas tienen ancho fijo para que alineen de una fila a otra
+// (cada fila es su propia cuadrícula); en estrecha se apilan.
 const FilaCosto = ({ costo, onEditar, onRenovar, onBorrar, detalle }: FilaProps) => (
-    <li className="py-2">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span className="min-w-40 flex-1 text-sm font-medium">
-                {!costo.recurrente && (
-                    <span className="mr-2 font-normal text-muted-foreground">{fechaDia(costo.fecha, { day: 'numeric', month: 'short' })} ·</span>
+    <li className="rounded-lg px-3 py-3 transition-colors hover:bg-muted/40">
+        <div className="grid items-center gap-x-4 gap-y-2 lg:grid-cols-[minmax(0,1fr)_8rem_11rem_13rem]">
+            <div className="min-w-0">
+                <p className="text-sm font-medium">
+                    {!costo.recurrente && (
+                        <span className="font-normal text-muted-foreground">{fechaDia(costo.fecha, { day: 'numeric', month: 'short' })} · </span>
+                    )}
+                    {costo.concepto}
+                </p>
+                {costo.recurrente && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                        Desde el {fechaDia(costo.fecha)}
+                        {costo.fechaFin ? ` · termina el ${fechaDia(costo.fechaFin)}` : ''}
+                        {costo.notas ? ` · ${costo.notas}` : ''}
+                    </p>
                 )}
-                {costo.concepto}
+            </div>
+            <span>
+                <span className="inline-block rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                    {CATEGORIA_LABEL[costo.categoria]}
+                </span>
             </span>
-            <span className="w-32 text-xs text-muted-foreground uppercase">{CATEGORIA_LABEL[costo.categoria]}</span>
-            <span className="w-44 text-right text-sm"><MontoCosto c={costo} /></span>
-            <span className="flex gap-1">
+            <div className="text-sm lg:text-right"><MontoCosto c={costo} enBloque /></div>
+            <div className="flex gap-1 lg:justify-end">
                 {onRenovar && (
                     <Button variant="outline" size="sm" onClick={() => onRenovar(costo)}>Cambiar monto</Button>
                 )}
@@ -57,15 +72,8 @@ const FilaCosto = ({ costo, onEditar, onRenovar, onBorrar, detalle }: FilaProps)
                 <Button variant="ghost" size="icon-sm" aria-label={`Borrar ${costo.concepto}`} onClick={() => onBorrar(costo)}>
                     <Trash2 />
                 </Button>
-            </span>
+            </div>
         </div>
-        {costo.recurrente && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-                Desde el {fechaDia(costo.fecha)}
-                {costo.fechaFin ? ` · termina el ${fechaDia(costo.fechaFin)}` : ''}
-                {costo.notas ? ` · ${costo.notas}` : ''}
-            </p>
-        )}
         {detalle}
     </li>
 )
@@ -90,18 +98,14 @@ const Historial = ({ versiones }: { versiones: CostoOperativo[] }) => {
 }
 
 export const GastosSection = () => {
-    const queryClient = useQueryClient()
     const [editando, setEditando] = useState<CostoOperativo | 'nuevo' | null>(null)
     const [renovando, setRenovando] = useState<CostoOperativo | null>(null)
     const [borrando, setBorrando] = useState<CostoOperativo | null>(null)
 
-    const { data: costos, isLoading, isError, refetch } = useQuery({ queryKey: ['admin', 'costos'], queryFn: getCostos })
+    const { data: costos, isLoading, isError, refetch } = useCostos()
 
-    const borrar = useMutation({
-        mutationFn: (c: CostoOperativo) => borrarCosto(c.id),
+    const borrar = useBorrarCosto({
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'costos'] })
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'finanzas'] })
             toast.success('Gasto borrado.')
             setBorrando(null)
         },
@@ -128,8 +132,11 @@ export const GastosSection = () => {
 
     return (
         <section className="space-y-4 surface p-5">
-            <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold">Gastos</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-base font-semibold">Gastos</h2>
+                    <p className="text-xs text-muted-foreground">Lo que cuesta operar. Restan a la utilidad de los meses que cubren.</p>
+                </div>
                 <Button size="sm" onClick={() => setEditando('nuevo')}><Plus /> Agregar gasto</Button>
             </div>
 
@@ -143,9 +150,9 @@ export const GastosSection = () => {
             ) : (
                 <>
                     <div>
-                        <h3 className="text-xs font-medium text-muted-foreground uppercase">Recurrentes</h3>
+                        <h3 className="px-3 pb-1 text-xs font-medium text-muted-foreground uppercase">Recurrentes</h3>
                         {vigentes.length === 0 ? (
-                            <p className="py-2 text-sm text-muted-foreground">Ningún gasto recurrente vigente.</p>
+                            <p className="px-3 py-2 text-sm text-muted-foreground">Ningún gasto recurrente vigente.</p>
                         ) : (
                             <ul className="divide-y">
                                 {vigentes.map((c) =>
@@ -160,9 +167,9 @@ export const GastosSection = () => {
                     </div>
 
                     <div>
-                        <h3 className="text-xs font-medium text-muted-foreground uppercase">Puntuales</h3>
+                        <h3 className="px-3 pb-1 text-xs font-medium text-muted-foreground uppercase">Puntuales</h3>
                         {puntuales.length === 0 ? (
-                            <p className="py-2 text-sm text-muted-foreground">Sin gastos puntuales.</p>
+                            <p className="px-3 py-2 text-sm text-muted-foreground">Sin gastos puntuales.</p>
                         ) : (
                             <ul className="divide-y">{puntuales.map((c) => fila(c))}</ul>
                         )}
@@ -207,7 +214,7 @@ export const GastosSection = () => {
                             )}
                             <div className="flex justify-end gap-2">
                                 <Button variant="outline" onClick={() => setBorrando(null)}>Cancelar</Button>
-                                <Button variant="destructive" disabled={borrar.isPending} onClick={() => borrar.mutate(borrando)}>
+                                <Button variant="destructive" disabled={borrar.isPending} onClick={() => borrar.mutate(borrando.id)}>
                                     {borrar.isPending && <Loader2 className="animate-spin" />}
                                     Borrar
                                 </Button>

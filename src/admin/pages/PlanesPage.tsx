@@ -1,20 +1,19 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { getPlanes } from '../actions/planes/getPlanes.action'
 import { PageHeader } from '../components/PageHeader'
 import { Pildora } from '../components/EstadoBadge'
 import { PlanDialog } from '../components/PlanDialog'
 import type { AdminPlan } from '../interfaces/plan.interface'
+import { usePlanes } from '../queries/planes.queries'
 import { dinero } from '../utils/formato'
 
 const tope = (n: number | null) => (n === null ? '∞' : n.toLocaleString('es-MX'))
 
 export const PlanesPage = () => {
     const [editando, setEditando] = useState<AdminPlan | 'nuevo' | null>(null)
-    const { data, isLoading, isError, refetch } = useQuery({ queryKey: ['admin', 'planes'], queryFn: getPlanes })
+    const { data, isLoading, isError, refetch } = usePlanes()
 
     return (
         <div className="space-y-6">
@@ -37,7 +36,7 @@ export const PlanesPage = () => {
                                 <th>Plan</th>
                                 <th className="text-right">Mensual</th>
                                 <th className="text-right">Anual</th>
-                                <th title="Usuarios / productos / ubicaciones / mensajes">Límites</th>
+                                <th title="Usuarios / productos / ubicaciones / dispositivos con PIN / mensajes">Límites</th>
                                 <th>Módulos</th>
                                 <th className="text-right">Empresas</th>
                                 <th>Estado</th>
@@ -66,7 +65,7 @@ export const PlanesPage = () => {
                                     <td className="text-right tabular-nums">{dinero(p.precioMensual, p.moneda)}</td>
                                     <td className="text-right tabular-nums">{dinero(p.precioAnual, p.moneda)}</td>
                                     <td className="tabular-nums">
-                                        {[p.maxUsuarios, p.maxProductos, p.maxUbicaciones, p.maxMensajesMes].map(tope).join(' / ')}
+                                        {[p.maxUsuarios, p.maxProductos, p.maxUbicaciones, p.maxDispositivos, p.maxMensajesMes].map(tope).join(' / ')}
                                     </td>
                                     <td className="text-muted-foreground">{p.modulos.length}</td>
                                     <td className="text-right tabular-nums">{p.empresas}</td>

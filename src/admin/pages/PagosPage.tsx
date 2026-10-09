@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Download, Loader2 } from 'lucide-react'
 import { Link, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
@@ -7,10 +5,10 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '../components/PageHeader'
 import { Pildora } from '../components/EstadoBadge'
-import { getEmpresas } from '../actions/empresas/empresas.actions'
-import { getComisionesPasarela } from '../actions/finanzas/comisionesPasarela.actions'
-import { getPagos, getTodosLosPagos } from '../actions/pagos/pagos.actions'
 import type { EstadoPago, PagosFiltros } from '../interfaces/pago.interface'
+import { useComisiones } from '../queries/comisiones.queries'
+import { useEmpresasOpciones } from '../queries/empresas.queries'
+import { useExportarPagos, usePagos } from '../queries/pagos.queries'
 import { aCsv, descargarCsv } from '../utils/csv'
 import { dinero, fechaCorta } from '../utils/formato'
 
@@ -45,8 +43,6 @@ export const PagosPage = () => {
     const hasta = params.get('hasta') ?? ''
     const pagina = Number(params.get('pagina') ?? 0)
 
-    const [exportando, setExportando] = useState(false)
-
     const actualizar = (cambios: Record<string, string | undefined>) =>
         setParams(
             (previos) => {
@@ -73,30 +69,15 @@ export const PagosPage = () => {
 
     // Opciones de los selects: las empresas (hasta 100, por nombre) y los
     // proveedores que tienen tarifa configurada.
-    const { data: empresas } = useQuery({
-        queryKey: ['admin', 'empresas', 'opciones'],
-        queryFn: () => getEmpresas({ orden: 'nombre', pagina: 0, tamanio: 100 }),
-        staleTime: 5 * 60_000,
-    })
-    const { data: comisiones } = useQuery({
-        queryKey: ['admin', 'comisiones-pasarela'],
-        queryFn: getComisionesPasarela,
-        staleTime: 5 * 60_000,
-    })
+    const { data: empresas } = useEmpresasOpciones()
+    const { data: comisiones } = useComisiones()
 
-    const { data, isLoading, isError, isFetching, refetch } = useQuery({
-        queryKey: ['admin', 'pagos', { empresaId, proveedor, estado, desde, hasta, pagina }],
-        queryFn: () => getPagos(filtros, pagina),
-        enabled: !rangoInvertido,
-        placeholderData: (anterior) => anterior,
-    })
+    const { data, isLoading, isError, isFetching, refetch } = usePagos(filtros, pagina, !rangoInvertido)
 
     const proveedores = [...new Set([...(comisiones?.map((c) => c.proveedor) ?? []), ...(proveedor ? [proveedor] : [])])]
 
-    const exportar = async () => {
-        setExportando(true)
-        try {
-            const pagos = await getTodosLosPagos(filtros)
+    const exportar = useExportarPagos({
+        onSuccess: (pagos) => {
             const csv = aCsv(
                 [
                     'Folio', 'Creado', 'Pagado', 'Empresa ID', 'Empresa', 'Plan', 'Proveedor', 'Método',
@@ -109,12 +90,9 @@ export const PagosPage = () => {
             )
             descargarCsv(csv, `pagos-${new Date().toISOString().slice(0, 10)}.csv`)
             toast.success(`${pagos.length} pagos exportados.`)
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : 'No se pudo exportar.')
-        } finally {
-            setExportando(false)
-        }
-    }
+        },
+        onError: (error) => toast.error(error.message || 'No se pudo exportar.'),
+    })
 
     return (
         <div className="space-y-6">
@@ -122,8 +100,8 @@ export const PagosPage = () => {
                 titulo="Pagos"
                 descripcion="Historial de cobros. Filtra y descarga lo que ves en CSV."
                 accion={
-                    <Button size="lg" variant="outline" onClick={() => void exportar()} disabled={exportando || rangoInvertido}>
-                        {exportando ? <Loader2 className="animate-spin" /> : <Download />}
+                    <Button size="lg" variant="outline" onClick={() => exportar.mutate(filtros)} disabled={exportar.isPending || rangoInvertido}>
+                        {exportar.isPending ? <Loader2 className="animate-spin" /> : <Download />}
                         Exportar CSV
                     </Button>
                 }
@@ -138,7 +116,7 @@ export const PagosPage = () => {
                         onChange={(e) => actualizar({ empresaId: e.target.value || undefined })}
                     >
                         <option value="">Todas</option>
-                        {empresas?.contenido.map((e) => (
+                        {empresas?.map((e) => (
                             <option key={e.id} value={e.id}>{e.nombre}</option>
                         ))}
                     </select>

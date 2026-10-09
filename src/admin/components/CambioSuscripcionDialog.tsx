@@ -1,17 +1,16 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { mensajeDeError } from '@/api/apiError'
-import { cambiarSuscripcion } from '../actions/empresas/empresas.actions'
 import type {
     AdminEmpresaDetalle,
     CambioSuscripcion,
     EstadoSuscripcion,
 } from '../interfaces/empresa.interface'
 import type { AdminPlan } from '../interfaces/plan.interface'
+import { useCambiarSuscripcion } from '../queries/empresas.queries'
 import { ESTADO_LABEL, ESTADOS, ESTADOS_CON_VIGENCIA } from '../utils/formato'
 
 export type AccionSuscripcion = 'plan' | 'extender' | 'estado'
@@ -51,7 +50,6 @@ const Formulario = ({
     planes,
     onClose,
 }: Props & { accion: AccionSuscripcion }) => {
-    const queryClient = useQueryClient()
     const suscripcion = empresa.suscripcion
 
     const [planId, setPlanId] = useState<number | ''>(suscripcion?.planId ?? '')
@@ -76,13 +74,8 @@ const Formulario = ({
         return { ...base, estado, ...(dias !== '' ? { extenderDias: diasNum } : {}) }
     })()
 
-    const mutation = useMutation({
-        mutationFn: (c: CambioSuscripcion) => cambiarSuscripcion(empresa.id, c),
-        onSuccess: (detalle) => {
-            queryClient.setQueryData(['admin', 'empresa', empresa.id], detalle)
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'empresas'] })
-            // Un cambio de estado o de plan mueve los contadores de la cabecera.
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'metricas'] })
+    const mutation = useCambiarSuscripcion(empresa.id, {
+        onSuccess: () => {
             toast.success('Suscripción actualizada.')
             onClose()
         },

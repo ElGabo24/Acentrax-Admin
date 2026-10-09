@@ -1,17 +1,28 @@
 import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { mensajeDeError } from '@/api/apiError'
-import { getComisionesPasarela, guardarComisionPasarela } from '../actions/finanzas/comisionesPasarela.actions'
 import type { ComisionPasarela } from '../interfaces/comisionPasarela.interface'
+import { useComisiones, useGuardarComision } from '../queries/comisiones.queries'
 
 const inputClass =
     'h-9 rounded-lg border border-input bg-card px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
 
+/** Un símbolo dentro del campo (%, $): la unidad se lee sin ocupar una columna aparte. */
+const Unidad = ({ lado, simbolo, children }: { lado: 'izq' | 'der'; simbolo: string; children: React.ReactNode }) => (
+    <span className="relative block">
+        {children}
+        <span
+            aria-hidden
+            className={`pointer-events-none absolute inset-y-0 flex items-center text-sm font-normal text-muted-foreground ${lado === 'izq' ? 'left-2.5' : 'right-2.5'}`}
+        >
+            {simbolo}
+        </span>
+    </span>
+)
+
 const Fila = ({ inicial }: { inicial: ComisionPasarela }) => {
-    const queryClient = useQueryClient()
     const [porcentaje, setPorcentaje] = useState(String(inicial.porcentaje))
     const [fijo, setFijo] = useState(String(inicial.fijo ?? 0))
     const [moneda, setMoneda] = useState(inicial.monedaFijo ?? 'MXN')
@@ -25,32 +36,34 @@ const Fila = ({ inicial }: { inicial: ComisionPasarela }) => {
     const cambio =
         pctNum !== inicial.porcentaje || fijoNum !== (inicial.fijo ?? 0) || moneda.toUpperCase() !== (inicial.monedaFijo ?? 'MXN')
 
-    const mutation = useMutation({
-        mutationFn: () => guardarComisionPasarela(inicial.proveedor, { porcentaje: pctNum, fijo: fijoNum, monedaFijo: moneda.toUpperCase() }),
-        onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'comisiones-pasarela'] })
-            // La comisión estimada de todos los meses depende de esta tarifa.
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'finanzas'] })
-            toast.success(`Tarifa de ${inicial.proveedor} guardada.`)
-        },
+    const mutation = useGuardarComision(inicial.proveedor, {
+        onSuccess: () => toast.success(`Tarifa de ${inicial.proveedor} guardada.`),
     })
 
     return (
-        <li className="space-y-1 py-2">
+        <li className="space-y-1 py-3">
             <form
-                className="flex flex-wrap items-center gap-x-3 gap-y-2"
-                onSubmit={(e) => { e.preventDefault(); if (valido && cambio) mutation.mutate() }}
+                className="flex flex-wrap items-end gap-x-4 gap-y-3"
+                onSubmit={(e) => { e.preventDefault(); if (valido && cambio) mutation.mutate({ porcentaje: pctNum, fijo: fijoNum, monedaFijo: moneda.toUpperCase() }) }}
             >
-                <span className="w-24 text-sm font-medium">{inicial.proveedor}</span>
-                <label className="flex items-center gap-1.5 text-sm">
-                    <input aria-label="Porcentaje" className={`${inputClass} w-20`} inputMode="decimal" value={porcentaje} onChange={(e) => setPorcentaje(e.target.value)} /> %
+                <span className="w-28 pb-2 text-sm font-medium">{inicial.proveedor}</span>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                    Porcentaje
+                    <Unidad lado="der" simbolo="%">
+                        <input className={`${inputClass} w-24 pr-7 text-foreground`} inputMode="decimal" value={porcentaje} onChange={(e) => setPorcentaje(e.target.value)} />
+                    </Unidad>
                 </label>
-                <label className="flex items-center gap-1.5 text-sm">
-                    Fijo $
-                    <input aria-label="Cargo fijo" className={`${inputClass} w-20`} inputMode="decimal" value={fijo} onChange={(e) => setFijo(e.target.value)} />
-                    <input aria-label="Moneda del cargo fijo" className={`${inputClass} w-16`} value={moneda} maxLength={3} onChange={(e) => setMoneda(e.target.value.toUpperCase())} />
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                    Cargo fijo
+                    <Unidad lado="izq" simbolo="$">
+                        <input className={`${inputClass} w-28 pl-6 text-foreground`} inputMode="decimal" value={fijo} onChange={(e) => setFijo(e.target.value)} />
+                    </Unidad>
                 </label>
-                <Button type="submit" size="sm" variant="outline" disabled={!valido || !cambio || mutation.isPending}>
+                <label className="space-y-1 text-xs font-medium text-muted-foreground">
+                    Moneda
+                    <input className={`${inputClass} block w-20 text-foreground`} value={moneda} maxLength={3} onChange={(e) => setMoneda(e.target.value.toUpperCase())} />
+                </label>
+                <Button type="submit" size="sm" variant="outline" className="mb-1" disabled={!valido || !cambio || mutation.isPending}>
                     {mutation.isPending && <Loader2 className="animate-spin" />}
                     Guardar
                 </Button>
@@ -65,7 +78,7 @@ const Fila = ({ inicial }: { inicial: ComisionPasarela }) => {
 export const ComisionesSection = () => {
     const [nuevo, setNuevo] = useState('')
     const [agregados, setAgregados] = useState<string[]>([])
-    const { data, isLoading, isError } = useQuery({ queryKey: ['admin', 'comisiones-pasarela'], queryFn: getComisionesPasarela })
+    const { data, isLoading, isError } = useComisiones()
 
     const existentes = new Set(data?.map((c) => c.proveedor))
     const pendientes = agregados.filter((p) => !existentes.has(p))
@@ -95,7 +108,7 @@ export const ComisionesSection = () => {
             )}
 
             <form
-                className="flex items-center gap-2"
+                className="flex flex-wrap items-center gap-2 border-t pt-4"
                 onSubmit={(e) => {
                     e.preventDefault()
                     if (nombreNuevo && !existentes.has(nombreNuevo) && !agregados.includes(nombreNuevo)) {

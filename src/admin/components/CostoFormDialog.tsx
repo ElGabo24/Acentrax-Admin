@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { mensajeDeError } from '@/api/apiError'
-import { crearCosto, editarCosto } from '../actions/finanzas/costos.actions'
-import type { CategoriaCosto, CostoOperativo, CostoPayload, FrecuenciaCosto } from '../interfaces/costo.interface'
+import type { CategoriaCosto, CostoOperativo, FrecuenciaCosto } from '../interfaces/costo.interface'
+import { useGuardarCosto } from '../queries/costos.queries'
 import { aFechaIso, CATEGORIA_LABEL } from '../utils/formato'
 
 const inputClass =
@@ -51,7 +50,6 @@ const Formulario = ({
     onClose: () => void
     onCambiarMonto: (costo: CostoOperativo) => void
 }) => {
-    const queryClient = useQueryClient()
     const esEdicion = costo !== null
     // En un recurrente existente el monto solo se cambia renovando; lo demás se corrige aquí.
     const montoBloqueado = costo?.recurrente === true
@@ -81,12 +79,8 @@ const Formulario = ({
         return null
     })()
 
-    const mutation = useMutation({
-        mutationFn: (payload: CostoPayload) => (costo ? editarCosto(costo.id, payload) : crearCosto(payload)),
+    const mutation = useGuardarCosto(costo, {
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'costos'] })
-            // Un gasto nuevo o corregido cambia la utilidad de los meses que cubre.
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'finanzas'] })
             toast.success(esEdicion ? 'Gasto actualizado.' : 'Gasto registrado.')
             onClose()
         },

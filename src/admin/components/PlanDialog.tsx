@@ -1,12 +1,11 @@
 import { useState, type FormEvent } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { mensajeDeError } from '@/api/apiError'
-import { crearPlan, editarPlan, getModulosPlan } from '../actions/planes/planes.actions'
-import type { AdminPlan, PlanPayload } from '../interfaces/plan.interface'
+import type { AdminPlan } from '../interfaces/plan.interface'
+import { useGuardarPlan, useModulosPlan } from '../queries/planes.queries'
 
 const inputClass =
     'h-9 w-full rounded-lg border border-input bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60'
@@ -47,13 +46,8 @@ const Campo = ({
 )
 
 const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => void }) => {
-    const queryClient = useQueryClient()
     const esEdicion = plan !== null
-    const { data: catalogo, isError: sinCatalogo } = useQuery({
-        queryKey: ['admin', 'planes', 'modulos'],
-        queryFn: getModulosPlan,
-        staleTime: Infinity,
-    })
+    const { data: catalogo, isError: sinCatalogo } = useModulosPlan()
 
     const [codigo, setCodigo] = useState(plan?.codigo ?? '')
     const [nombre, setNombre] = useState(plan?.nombre ?? '')
@@ -64,6 +58,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
     const [maxUsuarios, setMaxUsuarios] = useState(texto(plan?.maxUsuarios))
     const [maxProductos, setMaxProductos] = useState(texto(plan?.maxProductos))
     const [maxUbicaciones, setMaxUbicaciones] = useState(texto(plan?.maxUbicaciones))
+    const [maxDispositivos, setMaxDispositivos] = useState(texto(plan?.maxDispositivos))
     const [maxMensajesMes, setMaxMensajesMes] = useState(texto(plan?.maxMensajesMes))
     const [modulos, setModulos] = useState<string[]>(plan?.modulos ?? [])
     const [stripeMensual, setStripeMensual] = useState(plan?.stripePriceMensual ?? '')
@@ -74,7 +69,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
 
     const mensual = Number(precioMensual)
     const anual = Number(precioAnual)
-    const topes = [maxUsuarios, maxProductos, maxUbicaciones].map(aNumeroONulo)
+    const topes = [maxUsuarios, maxProductos, maxUbicaciones, maxDispositivos].map(aNumeroONulo)
     const mensajes = aNumeroONulo(maxMensajesMes)
     const ordenNum = Number(orden)
 
@@ -85,16 +80,15 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
         if (precioMensual.trim() === '' || !(mensual >= 0)) return 'El precio mensual debe ser un número mayor o igual a cero.'
         if (precioAnual.trim() === '' || !(anual >= 0)) return 'El precio anual debe ser un número mayor o igual a cero.'
         if (!/^[A-Za-z]{3}$/.test(moneda)) return 'La moneda son tres letras, como MXN.'
-        if (topes.some((t) => t !== null && !(Number.isInteger(t) && t > 0))) return 'Los topes deben ser enteros mayores que cero, o vacíos para ilimitado.'
+        if (topes.slice(0, 3).some((t) => t !== null && !(Number.isInteger(t) && t > 0))) return 'Los topes deben ser enteros mayores que cero, o vacíos para ilimitado.'
+        if (topes[3] !== null && !(Number.isInteger(topes[3]) && topes[3] > 0)) return 'Los dispositivos con PIN deben ser un entero mayor que cero, o vacío para ilimitado.'
         if (mensajes !== null && !(Number.isInteger(mensajes) && mensajes >= 0)) return 'Los mensajes incluidos deben ser un entero mayor o igual a cero, o vacío para ilimitado.'
         if (orden.trim() === '' || !Number.isInteger(ordenNum)) return 'El orden debe ser un número entero.'
         return null
     })()
 
-    const mutation = useMutation({
-        mutationFn: (payload: PlanPayload) => (plan ? editarPlan(plan.id, payload) : crearPlan(payload)),
+    const mutation = useGuardarPlan(plan, {
         onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ['admin', 'planes'], exact: true })
             toast.success(esEdicion ? 'Plan actualizado.' : 'Plan creado.')
             onClose()
         },
@@ -113,6 +107,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
             maxUsuarios: topes[0],
             maxProductos: topes[1],
             maxUbicaciones: topes[2],
+            maxDispositivos: topes[3],
             maxMensajesMes: mensajes,
             modulos,
             stripePriceMensual: stripeMensual.trim() || null,
@@ -182,11 +177,12 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
             <fieldset className="space-y-2">
                 <legend className="text-sm font-medium">Límites</legend>
                 <p className="text-xs text-muted-foreground">Vacío significa ilimitado. Bajar un tope no expulsa a quien ya lo excede: solo le impide crecer.</p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {([
                         ['Usuarios', maxUsuarios, setMaxUsuarios],
                         ['Productos', maxProductos, setMaxProductos],
                         ['Ubicaciones', maxUbicaciones, setMaxUbicaciones],
+                        ['Dispositivos con PIN máx.', maxDispositivos, setMaxDispositivos],
                         ['Mensajes/mes', maxMensajesMes, setMaxMensajesMes],
                     ] as const).map(([etiqueta, valor, set]) => (
                         <Campo key={etiqueta} etiqueta={etiqueta}>

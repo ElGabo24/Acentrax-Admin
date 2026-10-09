@@ -57,11 +57,11 @@ jobs:
           rsync -avz --delete --exclude 'index.html' \
             -e "ssh -i ~/.ssh/id_ed25519" \
             dist/ \
-            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/admin/
+            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/sites/admin/
 
       - name: Subir index.html
         run: |
           rsync -avz \
             -e "ssh -i ~/.ssh/id_ed25519" \
             dist/index.html \
-            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/admin/
+            ${{ secrets.HETZNER_USER }}@${{ secrets.HETZNER_HOST }}:~/apps/Acentrax-Backend/sites/admin/

@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Loader2 } from 'lucide-react'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/custom/Logo'
+import { ThemeToggle } from '@/components/custom/ThemeToggle'
 import { ApiError } from '@/api/apiError'
 import { useAuthStore } from '../store/useAuthStore'
 
@@ -47,11 +49,25 @@ export const LoginPage = () => {
 
     const mensaje = error ?? avisoSesion
 
+    // El póster solo entra en pantallas anchas y apaisadas (variante `poster`, en index.css): en una
+    // más cuadrada `cover` le recorta el texto. Al ser un `background-image` condicionado, tampoco se
+    // descarga en el móvil. El color de respaldo es el azul del póster, para que no haya un destello
+    // claro mientras carga; anclado a la izquierda, donde va su texto.
     return (
-        <main className="flex min-h-svh items-center justify-center bg-muted/40 px-4">
-            <form onSubmit={onSubmit} noValidate className="surface w-full max-w-sm space-y-5 p-7 shadow-sm">
+        <main className="relative flex min-h-svh items-center justify-center bg-muted/40 px-4 poster:bg-[#0a2e4d] poster:bg-[url('/fondo.webp')] poster:bg-cover poster:bg-left">
+            {/* En una cápsula para que se lea también sobre la foto del póster. */}
+            <div className="absolute top-4 right-4 rounded-lg border bg-card/80 backdrop-blur-md">
+                <ThemeToggle />
+            </div>
+
+            <form
+                onSubmit={onSubmit}
+                noValidate
+                className="surface w-full max-w-sm space-y-5 p-7 shadow-sm poster:bg-card/90 poster:shadow-2xl poster:backdrop-blur-md"
+            >
                 <div>
-                    <p className="text-xs font-medium tracking-widest text-muted-foreground uppercase">
+                    <Logo size={48} />
+                    <p className="mt-4 text-xs font-medium tracking-widest text-muted-foreground uppercase">
                         Acentrax
                     </p>
                     <h1 className="mt-1 text-2xl font-semibold tracking-tight">Administración</h1>

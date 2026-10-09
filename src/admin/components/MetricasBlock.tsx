@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query'
-import { cn } from '@/lib/utils'
-import { getMetricas } from '../actions/metricas/getMetricas.action'
 import type { EstadoSuscripcion } from '../interfaces/empresa.interface'
+import { useMetricas } from '../queries/metricas.queries'
+import { StatTile } from './StatTile'
 import { dinero, ESTADO_LABEL, ESTADOS, fechaCorta } from '../utils/formato'
 
 interface Props {
@@ -9,37 +8,8 @@ interface Props {
     onFiltrarEstado: (estado: EstadoSuscripcion) => void
 }
 
-const Tarjeta = ({
-    etiqueta,
-    valor,
-    detalle,
-    onClick,
-}: {
-    etiqueta: string
-    valor: React.ReactNode
-    detalle?: React.ReactNode
-    onClick?: () => void
-}) => {
-    const Contenedor = onClick ? 'button' : 'div'
-    return (
-        <Contenedor
-            type={onClick ? 'button' : undefined}
-            onClick={onClick}
-            className={cn('surface p-4 text-left', onClick && 'transition hover:border-ring/60 hover:shadow-sm')}
-        >
-            <p className="text-xs font-medium text-muted-foreground">{etiqueta}</p>
-            <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{valor}</p>
-            {detalle && <div className="mt-1 text-xs text-muted-foreground">{detalle}</div>}
-        </Contenedor>
-    )
-}
-
 export const MetricasBlock = ({ onFiltrarEstado }: Props) => {
-    const { data, isLoading, isError, refetch } = useQuery({
-        queryKey: ['admin', 'metricas'],
-        queryFn: getMetricas,
-        staleTime: 60_000,
-    })
+    const { data, isLoading, isError, refetch } = useMetricas()
 
     if (isError && !data) {
         // Sin métricas la lista sigue sirviendo: solo se avisa.
@@ -65,7 +35,7 @@ export const MetricasBlock = ({ onFiltrarEstado }: Props) => {
 
     return (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Tarjeta
+            <StatTile
                 etiqueta="Empresas activas"
                 valor={porEstado.ACTIVA}
                 onClick={() => onFiltrarEstado('ACTIVA')}
@@ -77,13 +47,13 @@ export const MetricasBlock = ({ onFiltrarEstado }: Props) => {
                     </span>
                 }
             />
-            <Tarjeta
+            <StatTile
                 etiqueta="Pruebas por vencer (7 días)"
                 valor={data.pruebasPorVencerEstaSemana}
                 detalle={data.pruebasPorVencerEstaSemana > 0 ? 'Toca para ver cuáles' : 'Nada por atender'}
                 onClick={() => onFiltrarEstado('PRUEBA')}
             />
-            <Tarjeta
+            <StatTile
                 etiqueta="Ingreso este mes"
                 valor={dinero(data.ingresoMesActual, 'MXN', 0)}
                 detalle={
@@ -92,7 +62,7 @@ export const MetricasBlock = ({ onFiltrarEstado }: Props) => {
                     )
                 }
             />
-            <Tarjeta
+            <StatTile
                 etiqueta="Conversión prueba→pago"
                 valor={conv.pasaronPorPrueba === 0 ? '—' : `${Math.round(conv.tasa)}%`}
                 detalle={

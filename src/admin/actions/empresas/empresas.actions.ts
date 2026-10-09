@@ -8,10 +8,14 @@ import type {
     EmpresasFiltros,
 } from '../../interfaces/empresa.interface'
 
-export const getEmpresas = async (filtros: EmpresasFiltros): Promise<PageResponse<AdminEmpresaResumen>> => {
+export const getEmpresas = async (
+    filtros: EmpresasFiltros,
+    signal?: AbortSignal
+): Promise<PageResponse<AdminEmpresaResumen>> => {
     try {
         const { data } = await adminApi.get<PageResponse<AdminEmpresaResumen>>('/admin/empresas', {
             params: filtros,
+            signal,
         })
         return data
     } catch (error) {
@@ -19,9 +23,9 @@ export const getEmpresas = async (filtros: EmpresasFiltros): Promise<PageRespons
     }
 }
 
-export const getEmpresa = async (id: number): Promise<AdminEmpresaDetalle> => {
+export const getEmpresa = async (id: number, signal?: AbortSignal): Promise<AdminEmpresaDetalle> => {
     try {
-        const { data } = await adminApi.get<AdminEmpresaDetalle>(`/admin/empresas/${id}`)
+        const { data } = await adminApi.get<AdminEmpresaDetalle>(`/admin/empresas/${id}`, { signal })
         return data
     } catch (error) {
         throw normalizeApiError(error)
