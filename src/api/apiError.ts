@@ -61,6 +61,16 @@ export type ApiErrorCode =
     | "PROVEEDOR_INVALIDO"
     | "PORCENTAJE_INVALIDO"
     | "FIJO_INVALIDO"
+    // --- Agentes y prospectos ---
+    | "USER_EXISTS"
+    | "USUARIO_NO_ENCONTRADO"
+    | "AGENTE_NO_ENCONTRADO"
+    | "AGENTE_INVALIDO"
+    | "PROSPECTO_NO_ENCONTRADO"
+    | "CUESTIONARIO_NO_DISPONIBLE"
+    | "CUESTIONARIO_NO_ENCONTRADO"
+    | "CUESTIONARIO_INVALIDO"
+    | "CUESTIONARIO_SIN_CAMBIOS"
     // --- Propios del cliente ---
     | "SIN_ACCESO_ADMIN"
     | "NETWORK_ERROR"
@@ -115,6 +125,15 @@ export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
     PROVEEDOR_INVALIDO: "Ese proveedor de pago no es válido.",
     PORCENTAJE_INVALIDO: "El porcentaje no es válido.",
     FIJO_INVALIDO: "El cargo fijo no es válido.",
+    USER_EXISTS: "Ya existe una cuenta con ese correo. Si es la tuya, usa «Convertir una cuenta existente».",
+    USUARIO_NO_ENCONTRADO: "No hay ninguna cuenta con ese correo.",
+    AGENTE_NO_ENCONTRADO: "Ese agente ya no existe.",
+    AGENTE_INVALIDO: "Los datos del agente no son válidos.",
+    PROSPECTO_NO_ENCONTRADO: "Ese negocio ya no existe.",
+    CUESTIONARIO_NO_DISPONIBLE: "Ese cuestionario no está disponible.",
+    CUESTIONARIO_NO_ENCONTRADO: "Esa versión del cuestionario ya no existe.",
+    CUESTIONARIO_INVALIDO: "El cuestionario no es válido.",
+    CUESTIONARIO_SIN_CAMBIOS: "No hay nada que publicar: es igual a la versión activa.",
     SIN_ACCESO_ADMIN: "Esta cuenta no tiene acceso de administrador",
     NETWORK_ERROR: "No se pudo conectar con el servidor. Verifica tu conexión.",
     UNKNOWN_ERROR: "Ocurrió un error inesperado. Intenta de nuevo.",
@@ -134,6 +153,10 @@ const CODIGOS_CON_MENSAJE_DEL_SERVIDOR = new Set<ApiErrorCode>([
     "PLANTILLA_RECETA_INVALIDA",
     "PLANTILLA_RECETA_DUPLICADA",
     "MERMA_INVALIDA",
+    // Nombra qué falta o qué regla se incumple (el correo, la contraseña mínima, una cuenta con negocio…).
+    "AGENTE_INVALIDO",
+    // Dice qué sección o pregunta hay que corregir.
+    "CUESTIONARIO_INVALIDO",
 ]);
 
 interface BackendErrorBody {

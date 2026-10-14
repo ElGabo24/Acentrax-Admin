@@ -9,6 +9,13 @@ import { PaquetesMensajesPage } from './admin/pages/PaquetesMensajesPage'
 import { PlanesPage } from './admin/pages/PlanesPage'
 import { RecetasPage } from './admin/pages/RecetasPage'
 import { EmpresaDetallePage } from './admin/pages/EmpresaDetallePage'
+import { AgentesPage } from './admin/pages/AgentesPage'
+import { CuestionarioPage } from './admin/pages/CuestionarioPage'
+import { MapaPage } from './admin/pages/MapaPage'
+import { ProductosRankingPage } from './admin/pages/ProductosRankingPage'
+import { ProspectosPage } from './admin/pages/ProspectosPage'
+import { SeguimientoPage } from './admin/pages/SeguimientoPage'
+import { ProspectosLayout } from './admin/layouts/ProspectosLayout'
 
 export const appRouter = createBrowserRouter([
     {
@@ -28,6 +35,20 @@ export const appRouter = createBrowserRouter([
                     { path: '/recetas', element: <RecetasPage /> },
                     { path: '/pagos', element: <PagosPage /> },
                     { path: '/finanzas', element: <FinanzasPage /> },
+                    {
+                        path: '/prospectos',
+                        element: <ProspectosLayout />,
+                        children: [
+                            { index: true, element: <ProspectosPage /> },
+                            { path: 'mapa', element: <MapaPage /> },
+                            { path: 'seguimiento', element: <SeguimientoPage /> },
+                            { path: 'productos', element: <ProductosRankingPage /> },
+                            { path: 'cuestionario', element: <CuestionarioPage /> },
+                            { path: 'agentes', element: <AgentesPage /> },
+                        ],
+                    },
+                    // Antes los agentes eran una sección aparte.
+                    { path: '/agentes', element: <Navigate to="/prospectos/agentes" replace /> },
                 ],
             },
         ],

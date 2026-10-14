@@ -1,4 +1,4 @@
-import { Building2, ChefHat, CreditCard, LogOut, MessageSquare, Package, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Building2, ChefHat, CreditCard, LogOut, MessageSquare, Package, Store, TrendingUp, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,7 @@ const SECCIONES: { to: string; etiqueta: string; icono: LucideIcon }[] = [
     { to: '/recetas', etiqueta: 'Recetas', icono: ChefHat },
     { to: '/pagos', etiqueta: 'Pagos', icono: CreditCard },
     { to: '/finanzas', etiqueta: 'Finanzas', icono: TrendingUp },
+    { to: '/prospectos', etiqueta: 'Prospectos', icono: Store },
 ]
 
 export const AdminLayout = () => {
@@ -78,7 +79,7 @@ export const AdminLayout = () => {
             </main>
 
             <nav
-                className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-6 border-t bg-card md:hidden"
+                className="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t bg-card md:hidden"
                 aria-label="Secciones"
             >
                 {SECCIONES.map(({ to, etiqueta, icono: Icono }) => (
@@ -88,7 +89,7 @@ export const AdminLayout = () => {
                         end={to === '/'}
                         className={({ isActive }) =>
                             cn(
-                                'flex flex-col items-center gap-0.5 py-2 text-[0.7rem] font-medium text-muted-foreground',
+                                'flex min-w-[4.5rem] flex-1 flex-col items-center gap-0.5 py-2 text-[0.7rem] font-medium text-muted-foreground',
                                 isActive && 'text-secondary-foreground'
                             )
                         }
