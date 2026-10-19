@@ -1,15 +1,17 @@
 import { useState } from 'react'
-import { KeyRound, Plus, UserCheck, UserPlus, UserX } from 'lucide-react'
+import { KeyRound, Plus, UserCheck, UserPlus, Users, UserX } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { ActivoAgenteDialog } from '../components/ActivoAgenteDialog'
 import { AgenteDialog } from '../components/AgenteDialog'
 import { ContraseniaAgenteDialog } from '../components/ContraseniaAgenteDialog'
+import { EquipoAgenteDialog } from '../components/EquipoAgenteDialog'
 import { Pildora } from '../components/EstadoBadge'
 import { PageHeader } from '../components/PageHeader'
 import { PromoverAgenteDialog } from '../components/PromoverAgenteDialog'
 import type { AdminAgente } from '../interfaces/prospectos.interface'
 import { useAgentes } from '../queries/agentes.queries'
+import { companerosDe, nombreDe } from '../utils/equipo'
 import { fechaCorta } from '../utils/formato'
 
 export const AgentesPage = () => {
@@ -17,6 +19,7 @@ export const AgentesPage = () => {
     const [promoviendo, setPromoviendo] = useState(false)
     const [cambiandoActivo, setCambiandoActivo] = useState<AdminAgente | null>(null)
     const [conContrasenia, setConContrasenia] = useState<AdminAgente | null>(null)
+    const [enEquipo, setEnEquipo] = useState<AdminAgente | null>(null)
 
     const { data, isLoading, isError, refetch } = useAgentes()
 
@@ -50,6 +53,7 @@ export const AgentesPage = () => {
                                 <th>Agente</th>
                                 <th>Teléfono</th>
                                 <th>Tipo</th>
+                                <th>Equipo</th>
                                 <th>Estado</th>
                                 <th>Alta</th>
                                 <th className="text-right">Acciones</th>
@@ -57,11 +61,11 @@ export const AgentesPage = () => {
                         </thead>
                         <tbody>
                             {isLoading && (
-                                <tr><td colSpan={6} className="py-10 text-center text-muted-foreground">Cargando agentes…</td></tr>
+                                <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">Cargando agentes…</td></tr>
                             )}
                             {data?.length === 0 && (
                                 <tr>
-                                    <td colSpan={6} className="py-10 text-center text-muted-foreground">
+                                    <td colSpan={7} className="py-10 text-center text-muted-foreground">
                                         Todavía no hay agentes. Convierte tu cuenta o crea el primero.
                                     </td>
                                 </tr>
@@ -74,6 +78,11 @@ export const AgentesPage = () => {
                                     </td>
                                     <td className="whitespace-nowrap tabular-nums">{a.telefono}</td>
                                     <td>{a.tipo === 'PROPIO' ? 'Propio' : 'Distribuidor'}</td>
+                                    <td>
+                                        {companerosDe(a, data).length > 0
+                                            ? `Con ${companerosDe(a, data).map(nombreDe).join(', ')}`
+                                            : '—'}
+                                    </td>
                                     <td>
                                         {a.activo ? (
                                             <Pildora className="bg-success/15 text-success">Activo</Pildora>
@@ -89,6 +98,15 @@ export const AgentesPage = () => {
                                     <td className="whitespace-nowrap">{fechaCorta(a.creadoEn)}</td>
                                     <td>
                                         <div className="flex justify-end gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                aria-label={`Equipo de ${a.nombre}`}
+                                                title="Equipo: comparte negocios con otro agente"
+                                                onClick={() => setEnEquipo(a)}
+                                            >
+                                                <Users /> <span className="hidden xl:inline">Equipo</span>
+                                            </Button>
                                             <Button
                                                 variant="ghost"
                                                 size="sm"
@@ -121,6 +139,7 @@ export const AgentesPage = () => {
             <PromoverAgenteDialog abierto={promoviendo} onClose={() => setPromoviendo(false)} />
             <ActivoAgenteDialog agente={cambiandoActivo} onClose={() => setCambiandoActivo(null)} />
             <ContraseniaAgenteDialog agente={conContrasenia} onClose={() => setConContrasenia(null)} />
+            <EquipoAgenteDialog agente={enEquipo} agentes={data ?? []} onClose={() => setEnEquipo(null)} />
         </div>
     )
 }

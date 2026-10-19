@@ -47,3 +47,23 @@ export const restablecerContraseniaAgente = async (userId: string, contrasenia: 
         throw normalizeApiError(error)
     }
 }
+
+/** Lo deja en el mismo equipo que `companeroId`: desde ahí comparten negocios, visitas y borradores. */
+export const vincularAgente = async (userId: string, companeroId: string): Promise<AdminAgente> => {
+    try {
+        const { data } = await adminApi.put<AdminAgente>(`/admin/agentes/${userId}/equipo`, { companeroId })
+        return data
+    } catch (error) {
+        throw normalizeApiError(error)
+    }
+}
+
+/** Lo saca de su equipo; deja de ver los negocios de sus compañeros. */
+export const desvincularAgente = async (userId: string): Promise<AdminAgente> => {
+    try {
+        const { data } = await adminApi.delete<AdminAgente>(`/admin/agentes/${userId}/equipo`)
+        return data
+    } catch (error) {
+        throw normalizeApiError(error)
+    }
+}

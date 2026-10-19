@@ -10,6 +10,8 @@ export interface AdminAgente {
     activo: boolean
     creadoEn: string
     desactivadoEn: string | null
+    /** Los agentes con el mismo valor comparten negocios; `null` si trabaja solo. */
+    equipoId: string | null
 }
 
 /** Cuerpo de `POST /admin/agentes`. */

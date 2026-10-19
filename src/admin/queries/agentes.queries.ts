@@ -2,9 +2,11 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import {
     cambiarActivoAgente,
     crearAgente,
+    desvincularAgente,
     getAgentes,
     promoverAgente,
     restablecerContraseniaAgente,
+    vincularAgente,
 } from '../actions/prospectos/agentes.actions'
 import type { AdminAgente, AgentePayload } from '../interfaces/prospectos.interface'
 import { prospectosKeys } from './prospectos.queries'
@@ -74,3 +76,27 @@ export const useRestablecerContraseniaAgente = (
         mutationFn: ({ userId, contrasenia }: { userId: string; contrasenia: string }) =>
             restablecerContraseniaAgente(userId, contrasenia),
     })
+
+export const useVincularAgente = (opciones?: OpcionesMutacion<AdminAgente, { userId: string; companeroId: string }>) => {
+    const invalidarAgentes = useInvalidarAgentes()
+    return useMutation({
+        ...opciones,
+        mutationFn: ({ userId, companeroId }: { userId: string; companeroId: string }) => vincularAgente(userId, companeroId),
+        onSuccess: async (...args) => {
+            await invalidarAgentes()
+            return opciones?.onSuccess?.(...args)
+        },
+    })
+}
+
+export const useDesvincularAgente = (opciones?: OpcionesMutacion<AdminAgente, string>) => {
+    const invalidarAgentes = useInvalidarAgentes()
+    return useMutation({
+        ...opciones,
+        mutationFn: desvincularAgente,
+        onSuccess: async (...args) => {
+            await invalidarAgentes()
+            return opciones?.onSuccess?.(...args)
+        },
+    })
+}
