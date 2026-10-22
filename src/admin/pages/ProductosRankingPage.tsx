@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { getRanking } from '../actions/prospectos/prospectos.actions'
 import { Pildora } from '../components/EstadoBadge'
 import { PageHeader } from '../components/PageHeader'
@@ -20,6 +21,7 @@ export const ProductosRankingPage = () => {
     const pagina = Number(params.get('pagina') ?? 0)
     const [texto, setTexto] = useState(busqueda)
     const [descargando, setDescargando] = useState(false)
+    const [fotoGrande, setFotoGrande] = useState<{ url: string; nombre: string } | null>(null)
 
     const actualizar = (cambios: Record<string, string | undefined>) =>
         setParams(
@@ -130,7 +132,7 @@ export const ProductosRankingPage = () => {
                     <table className="data-table">
                         <thead>
                             <tr>
-                                <th className="w-14">Foto</th>
+                                <th className="w-20">Foto</th>
                                 <th>Producto</th>
                                 <th className="text-right">Negocios</th>
                                 <th className="text-right">Precio promedio</th>
@@ -152,9 +154,17 @@ export const ProductosRankingPage = () => {
                                 <tr key={p.clave}>
                                     <td>
                                         {p.imagenUrl ? (
-                                            <img src={p.imagenUrl} alt="" loading="lazy" className="size-10 rounded-md border bg-white object-contain" />
+                                            <button
+                                                type="button"
+                                                title="Ver la foto completa"
+                                                aria-label={`Ver la foto de ${p.nombre}`}
+                                                onClick={() => setFotoGrande({ url: p.imagenUrl!, nombre: p.nombre })}
+                                                className="block cursor-zoom-in rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                                            >
+                                                <img src={p.imagenUrl} alt="" loading="lazy" className="size-16 rounded-md border bg-white object-contain p-0.5" />
+                                            </button>
                                         ) : (
-                                            <span className="flex size-10 items-center justify-center rounded-md border border-dashed text-muted-foreground" title="Sin foto">
+                                            <span className="flex size-16 items-center justify-center rounded-md border border-dashed text-muted-foreground" title="Sin foto">
                                                 <ImageOff className="size-4" />
                                             </span>
                                         )}
@@ -169,10 +179,10 @@ export const ProductosRankingPage = () => {
                                     <td className="text-right text-base font-semibold tabular-nums">{p.negocios}</td>
                                     <td className="text-right tabular-nums">{p.precioPromedio !== null ? dinero(p.precioPromedio) : '—'}</td>
                                     <td>
-                                        {!p.enCatalogo ? (
-                                            <Pildora className="bg-warning/15 text-warning">No está</Pildora>
-                                        ) : p.imagenUrl ? (
+                                        {p.imagenUrl ? (
                                             <Pildora className="bg-success/15 text-success">Con foto</Pildora>
+                                        ) : !p.enCatalogo ? (
+                                            <Pildora className="bg-warning/15 text-warning">No está</Pildora>
                                         ) : (
                                             <Pildora className="bg-muted text-muted-foreground">Sin foto</Pildora>
                                         )}
@@ -191,6 +201,16 @@ export const ProductosRankingPage = () => {
                     <Button variant="outline" size="sm" disabled={data.esUltima} onClick={() => actualizar({ pagina: String(pagina + 1) })}>Siguiente</Button>
                 </div>
             )}
+
+            <Dialog open={fotoGrande !== null} onOpenChange={(abierto) => !abierto && setFotoGrande(null)}>
+                <DialogContent className="max-w-xl">
+                    <DialogTitle>{fotoGrande?.nombre}</DialogTitle>
+                    <DialogDescription className="sr-only">Foto del producto en grande</DialogDescription>
+                    {fotoGrande && (
+                        <img src={fotoGrande.url} alt={fotoGrande.nombre} className="mx-auto max-h-[70vh] max-w-full rounded-md object-contain" />
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

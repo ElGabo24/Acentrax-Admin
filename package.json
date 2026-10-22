@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:remoto": "vite --mode devserver",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
