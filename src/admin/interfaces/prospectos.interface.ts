@@ -39,8 +39,10 @@ export interface Negocio {
     id: string
     agenteId: string
     nombreNegocio: string
-    /** Texto libre en la base; la app ofrece una lista (`GiroNegocio`) y `OTRO`. */
+    /** El giro principal. Texto libre en la base; la app ofrece el catálogo de comercios (`GiroNegocio`) y `OTRO`. */
     giro: string
+    /** Todo a lo que se dedica (de 1 a 5), con el `giro` primero. Ausente en un servidor sin V107. */
+    categorias?: string[]
     /** Solo vienen si el dueño dio su consentimiento. */
     contactoNombre: string | null
     contactoTelefono: string | null
@@ -209,6 +211,10 @@ export interface InvitacionEnSeguimiento {
     expiraEn: string
     diasDesdeEnvio: number
     situacion: 'VIGENTE' | 'VENCIDA'
+    /** Cuándo el dueño abrió el enlace por primera y por última vez; null = no lo ha abierto. */
+    abiertaEn: string | null
+    ultimaAperturaEn: string | null
+    aperturas: number
 }
 
 export interface Seguimiento {

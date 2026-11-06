@@ -39,11 +39,20 @@ export const GIRO_NEGOCIO_LABEL: Record<string, string> = {
     PAPELERIA: 'Papelería',
     FARMACIA: 'Farmacia',
     OTRO: 'Otro',
+    // El catálogo de comercios que ahora elige el agente (hasta 5 por negocio).
+    RESTAURANTE: 'Comida',
+    ROPA: 'Ropa',
+    FERRETERIA: 'Ferretería',
+    SERVICIOS: 'Servicios',
 }
 
 /** El giro es texto libre en la base: uno que la lista no conoce se muestra tal cual, capitalizado. */
 export const giroLabel = (giro: string): string =>
     GIRO_NEGOCIO_LABEL[giro] ?? giro.charAt(0).toUpperCase() + giro.slice(1).toLowerCase()
+
+/** Todo a lo que se dedica el negocio, el principal primero: «Farmacia · Abarrotes». Sin lista (servidor viejo) es solo el giro. */
+export const girosLabel = (giro: string, categorias?: string[]): string =>
+    (categorias?.length ? categorias : [giro]).map(giroLabel).join(' · ')
 
 /** Los motivos de rechazo de la versión 1 del cuestionario; el detalle usa la definición del servidor si la tiene. */
 export const MOTIVO_NO_LABEL: Record<string, string> = {
@@ -102,3 +111,21 @@ export const enlaceDeWhatsApp = (telefono: string | null): string | null => {
     if (digitos.length < 10 || digitos.length > 15) return null
     return `https://wa.me/${digitos.length === 10 ? `52${digitos}` : digitos}`
 }
+
+/**
+ * Las invitaciones que el dueño ya abrió van primero, la de apertura más reciente arriba: a esas hay que llamarles en
+ * caliente. Las que nadie ha abierto conservan su orden (las más viejas primero, como llegan del servidor).
+ */
+export const invitacionesPorInteres = <T extends { ultimaAperturaEn: string | null }>(invitaciones: T[]): T[] =>
+    invitaciones
+        .map((invitacion, indice) => ({ invitacion, indice }))
+        .sort((a, b) => {
+            const ta = a.invitacion.ultimaAperturaEn ? new Date(a.invitacion.ultimaAperturaEn).getTime() : null
+            const tb = b.invitacion.ultimaAperturaEn ? new Date(b.invitacion.ultimaAperturaEn).getTime() : null
+            if (ta !== null && tb !== null) return tb - ta
+            if (ta !== null) return -1
+            if (tb !== null) return 1
+            return a.indice - b.indice
+        })
+        .map(({ invitacion }) => invitacion)
+

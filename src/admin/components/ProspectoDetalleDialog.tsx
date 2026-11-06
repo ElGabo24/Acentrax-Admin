@@ -5,7 +5,7 @@ import type { Visita } from '../interfaces/prospectos.interface'
 import { useAgentes } from '../queries/agentes.queries'
 import { useCuestionario, useProspecto } from '../queries/prospectos.queries'
 import { dinero, fechaCorta, fechaHora } from '../utils/formato'
-import { enlaceDeMapa, giroLabel, motivoNoLabel, RESULTADO_VISITA_LABEL } from '../utils/prospectos'
+import { enlaceDeMapa, girosLabel, motivoNoLabel, RESULTADO_VISITA_LABEL } from '../utils/prospectos'
 import { ProspectoEstadoBadge } from './ProspectoEstadoBadge'
 import { RespuestasVisita } from './RespuestasVisita'
 
@@ -65,7 +65,7 @@ const Detalle = ({ id }: { id: string }) => {
                     <ProspectoEstadoBadge estado={negocio.estado} />
                 </DialogTitle>
                 <DialogDescription>
-                    {giroLabel(negocio.giro)} · registrado {fechaCorta(negocio.creadoEn)}
+                    {girosLabel(negocio.giro, negocio.categorias)} · registrado {fechaCorta(negocio.creadoEn)}
                     {agente ? ` por ${agente.nombre}` : ''}
                 </DialogDescription>
             </div>

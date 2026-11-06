@@ -6,7 +6,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Pildora } from '../components/EstadoBadge'
 import { useMetricas, useSeguimiento } from '../queries/prospectos.queries'
 import { aFechaIso, fechaCorta, haceCuanto } from '../utils/formato'
-import { enlaceDeWhatsApp } from '../utils/prospectos'
+import { enlaceDeWhatsApp, invitacionesPorInteres } from '../utils/prospectos'
 
 type Periodo = '7' | '30' | 'mes' | 'otro'
 
@@ -119,14 +119,15 @@ export const SeguimientoPage = () => {
                                 <th>Agente</th>
                                 <th>Enviada</th>
                                 <th>Estado</th>
+                                <th>Abrió el enlace</th>
                                 <th>Contacto</th>
                             </tr>
                         </thead>
                         <tbody>
                             {seguimiento.data?.invitaciones.length === 0 && (
-                                <tr><td colSpan={5} className="py-8 text-center text-muted-foreground">No hay invitaciones esperando.</td></tr>
+                                <tr><td colSpan={6} className="py-8 text-center text-muted-foreground">No hay invitaciones esperando.</td></tr>
                             )}
-                            {seguimiento.data?.invitaciones.map((i) => {
+                            {invitacionesPorInteres(seguimiento.data?.invitaciones ?? []).map((i) => {
                                 const whatsapp = enlaceDeWhatsApp(i.contactoTelefono)
                                 return (
                                     <tr key={i.prospectoId}>
@@ -138,6 +139,16 @@ export const SeguimientoPage = () => {
                                                 <Pildora className="bg-destructive/15 text-destructive">Venció</Pildora>
                                             ) : (
                                                 <Pildora className="bg-warning/15 text-warning">Vence {fechaCorta(i.expiraEn)}</Pildora>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {i.ultimaAperturaEn ? (
+                                                <div className="space-y-0.5">
+                                                    <Pildora className="bg-success/15 text-success">Lo abrió {haceCuanto(i.ultimaAperturaEn)}</Pildora>
+                                                    {i.aperturas > 1 && <p className="text-xs text-muted-foreground">{i.aperturas} veces</p>}
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground">Aún no</span>
                                             )}
                                         </td>
                                         <td>

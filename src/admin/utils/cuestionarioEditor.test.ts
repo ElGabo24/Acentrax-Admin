@@ -4,6 +4,7 @@ import {
     aClave,
     aDefinicion,
     desdeDefinicion,
+    importarDefinicion,
     mover,
     nuevaClave,
     problemaDe,
@@ -145,6 +146,34 @@ describe('problemaDe', () => {
         e.secciones[0].preguntas[1].opciones = []
 
         expect(problemaDe(e)).toBeNull()
+    })
+})
+
+describe('importarDefinicion', () => {
+    it('lee la definición sola y conserva sus ids', () => {
+        expect(aDefinicion(importarDefinicion(JSON.stringify(base)))).toEqual(base)
+    })
+
+    it('acepta el cuerpo del POST envuelto en «definicion»', () => {
+        expect(aDefinicion(importarDefinicion(JSON.stringify({ definicion: base })))).toEqual(base)
+    })
+
+    it('sin id, lo saca del texto al publicar', () => {
+        const sinIds = {
+            secciones: [{ titulo: 'Decisión', preguntas: [{ texto: '¿Usted decide?', tipo: 'SI_NO' }] }],
+            motivosNo: [{ texto: 'No decide' }],
+        }
+        const d = aDefinicion(importarDefinicion(JSON.stringify(sinIds)))
+        expect(d.secciones[0].id).toBe('decision')
+        expect(d.secciones[0].preguntas[0].id).toBe('usted_decide')
+        expect(d.motivosNo[0].id).toBe('NO_DECIDE')
+    })
+
+    it('dice qué no entendió', () => {
+        expect(() => importarDefinicion('{ esto no')).toThrow('no es un JSON válido')
+        expect(() => importarDefinicion('{"secciones": [], "motivosNo": 3}')).toThrow('Motivos')
+        const tipoMalo = { secciones: [{ titulo: 'A', preguntas: [{ texto: 'B', tipo: 'FECHA' }] }], motivosNo: [] }
+        expect(() => importarDefinicion(JSON.stringify(tipoMalo))).toThrow('«FECHA» no existe')
     })
 })
 

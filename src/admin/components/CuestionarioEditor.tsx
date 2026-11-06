@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { ArrowDown, ArrowUp, Loader2, Plus, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { ArrowDown, ArrowUp, FileUp, Loader2, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { usePublicarCuestionario } from '../queries/prospectos.queries'
 import {
     aDefinicion,
     desdeDefinicion,
+    importarDefinicion,
     llevaOpciones,
     mover,
     nuevaClave,
@@ -42,6 +43,22 @@ const Accion = ({ etiqueta, onClick, disabled, children }: { etiqueta: string; o
  */
 export const CuestionarioEditor = ({ inicial, onCancelar, onPublicado }: Props) => {
     const [editable, setEditable] = useState<CuestionarioEditable>(() => desdeDefinicion(inicial))
+    const archivo = useRef<HTMLInputElement>(null)
+
+    /** Reemplaza lo que hay en el editor por el archivo; nada se publica hasta darle a «Publicar nueva versión». */
+    const importar = async (file: File | undefined) => {
+        if (!file) return
+        try {
+            const leido = importarDefinicion(await file.text())
+            setEditable(leido)
+            const preguntas = leido.secciones.reduce((n, s) => n + s.preguntas.length, 0)
+            toast.success(`Se cargaron ${preguntas} preguntas de «${file.name}». Revísalas y publica.`)
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : 'No se pudo leer el archivo.')
+        } finally {
+            if (archivo.current) archivo.current.value = ''
+        }
+    }
 
     const problema = problemaDe(editable)
     const publicar = usePublicarCuestionario({
@@ -72,6 +89,23 @@ export const CuestionarioEditor = ({ inicial, onCancelar, onPublicado }: Props) 
 
     return (
         <div className="space-y-5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                    Parte de la versión vigente, o carga un cuestionario completo desde un archivo JSON.
+                </p>
+                <input
+                    ref={archivo}
+                    type="file"
+                    accept="application/json,.json"
+                    className="sr-only"
+                    aria-label="Archivo JSON del cuestionario"
+                    onChange={(e) => void importar(e.target.files?.[0])}
+                />
+                <Button type="button" variant="outline" size="sm" onClick={() => archivo.current?.click()}>
+                    <FileUp /> Importar JSON
+                </Button>
+            </div>
+
             {editable.secciones.map((seccion, si) => (
                 <section key={seccion.clave} className="surface space-y-3 p-4">
                     <div className="flex items-center gap-2">

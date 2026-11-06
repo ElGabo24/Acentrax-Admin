@@ -96,6 +96,69 @@ export const desdeDefinicion = (def: DefinicionCuestionario): CuestionarioEditab
     motivosNo: def.motivosNo.map((m) => ({ clave: nuevaClave(), id: m.id, texto: m.texto })),
 })
 
+const esObjeto = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+
+const lista = (v: unknown, donde: string): unknown[] => {
+    if (!Array.isArray(v)) throw new Error(`${donde}: falta la lista.`)
+    return v
+}
+
+const textoDe = (v: Record<string, unknown>, campo: string, donde: string): string => {
+    const valor = v[campo]
+    if (typeof valor !== 'string') throw new Error(`${donde}: falta «${campo}».`)
+    return valor
+}
+
+/** El `id` si viene; si no, queda sin id y se saca del texto al publicar, como lo nuevo que se agrega a mano. */
+const idDe = (v: Record<string, unknown>): string | undefined => (typeof v.id === 'string' && v.id.trim() ? v.id.trim() : undefined)
+
+const opcionesDe = (v: unknown, donde: string): OpcionEditable[] =>
+    lista(v, donde).map((o, k) => {
+        if (!esObjeto(o)) throw new Error(`${donde}, opción ${k + 1}: no es un objeto.`)
+        return { clave: nuevaClave(), id: idDe(o), texto: textoDe(o, 'texto', `${donde}, opción ${k + 1}`) }
+    })
+
+/**
+ * Lee un cuestionario escrito a mano en JSON, para revisarlo en el editor antes de publicarlo. Acepta la definición
+ * sola o envuelta como el cuerpo del POST (`{ "definicion": … }`). Solo revisa la forma: el servidor vuelve a
+ * validar todo al publicar. Lanza un `Error` con lo que no se entendió.
+ */
+export const importarDefinicion = (json: string): CuestionarioEditable => {
+    let leido: unknown
+    try {
+        leido = JSON.parse(json)
+    } catch {
+        throw new Error('El archivo no es un JSON válido.')
+    }
+    const def = esObjeto(leido) && esObjeto(leido.definicion) ? leido.definicion : leido
+    if (!esObjeto(def)) throw new Error('El JSON debe ser un objeto con «secciones» y «motivosNo».')
+
+    const tipos = new Set<string>(TIPOS_PREGUNTA.map((t) => t.valor))
+    const secciones = lista(def.secciones, 'Secciones').map((s, i): SeccionEditable => {
+        const donde = `Sección ${i + 1}`
+        if (!esObjeto(s)) throw new Error(`${donde}: no es un objeto.`)
+        return {
+            clave: nuevaClave(),
+            id: idDe(s),
+            titulo: textoDe(s, 'titulo', donde),
+            preguntas: lista(s.preguntas, `${donde}, preguntas`).map((p, j): PreguntaEditable => {
+                const dondeP = `${donde}, pregunta ${j + 1}`
+                if (!esObjeto(p)) throw new Error(`${dondeP}: no es un objeto.`)
+                const tipo = textoDe(p, 'tipo', dondeP)
+                if (!tipos.has(tipo)) throw new Error(`${dondeP}: el tipo «${tipo}» no existe.`)
+                return {
+                    clave: nuevaClave(),
+                    id: idDe(p),
+                    texto: textoDe(p, 'texto', dondeP),
+                    tipo: tipo as TipoPregunta,
+                    opciones: llevaOpciones(tipo as TipoPregunta) ? opcionesDe(p.opciones, `${dondeP}, opciones`) : [],
+                }
+            }),
+        }
+    })
+    return { secciones, motivosNo: opcionesDe(def.motivosNo, 'Motivos de «no»') }
+}
+
 /**
  * Lo que se manda al servidor: ids conservados y ids nuevos sacados del texto, sin repetirse. Las preguntas y
  * secciones comparten espacio de ids con lo ya publicado (un id nuevo nunca pisa uno existente, aunque esté en otra sección).
