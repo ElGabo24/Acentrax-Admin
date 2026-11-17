@@ -1,11 +1,5 @@
 import type { CategoriaCosto } from '../interfaces/costo.interface'
 import type { EstadoSuscripcion } from '../interfaces/empresa.interface'
-import type {
-    FuentePlantilla,
-    GiroPlantilla,
-    ModoFormula,
-    UnidadReceta,
-} from '../interfaces/plantillaReceta.interface'
 
 export const ESTADO_LABEL: Record<EstadoSuscripcion, string> = {
     PRUEBA: 'Prueba',
@@ -84,6 +78,7 @@ export const RECURSO_LABEL: Record<string, string> = {
     ubicaciones: 'Ubicaciones',
     dispositivos: 'Dispositivos con PIN',
     mensajes_mes: 'Mensajes del mes',
+    tickets_mes: 'Escaneos de ticket del mes',
 }
 
 export const CATEGORIA_LABEL: Record<CategoriaCosto, string> = {
@@ -92,38 +87,6 @@ export const CATEGORIA_LABEL: Record<CategoriaCosto, string> = {
     DOMINIO: 'Dominio',
     OTRO: 'Otro',
 }
-
-export const GIRO_LABEL: Record<GiroPlantilla, string> = {
-    PANADERIA: 'Panadería',
-    PIZZERIA: 'Pizzería',
-    TORTILLERIA: 'Tortillería',
-}
-
-export const FUENTE_LABEL: Record<FuentePlantilla, string> = {
-    PROVEEDOR: 'Ficha de proveedor',
-    AVPN: 'Disciplinare AVPN',
-    GENERADA: 'Generada',
-    MANUAL: 'Manual',
-}
-
-export const MODO_FORMULA_LABEL: Record<ModoFormula, string> = {
-    CANTIDAD_ABSOLUTA: 'Cantidad absoluta',
-    PORCENTAJE_PANADERO: 'Porcentaje panadero',
-}
-
-export const UNIDADES: UnidadReceta[] = ['KG', 'G', 'L', 'ML', 'PZA']
-
-export const UNIDAD_LABEL: Record<UnidadReceta, string> = {
-    KG: 'Kilogramos (KG)',
-    G: 'Gramos (G)',
-    L: 'Litros (L)',
-    ML: 'Mililitros (ML)',
-    PZA: 'Piezas (PZA)',
-}
-
-/** Cantidades de receta (gramos, piezas): hasta 3 decimales, sin ceros de relleno. */
-export const cantidad = (n: number): string =>
-    n.toLocaleString('es-MX', { maximumFractionDigits: 3 })
 
 export const fechaHora = (iso: string | null): string =>
     iso

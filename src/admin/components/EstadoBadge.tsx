@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils'
 import type { EstadoSuscripcion } from '../interfaces/empresa.interface'
-import type { EstadoPlantilla } from '../interfaces/plantillaReceta.interface'
 import { ESTADO_LABEL } from '../utils/formato'
 
 const COLOR: Record<EstadoSuscripcion, string> = {
@@ -29,10 +28,3 @@ export const EstadoBadge = ({ estado }: { estado: EstadoSuscripcion | null }) =>
     return <Pildora className={COLOR[estado]}>{ESTADO_LABEL[estado]}</Pildora>
 }
 
-/** Una sugerida va en ámbar a propósito: nunca debe leerse como dato duro. */
-export const PlantillaEstadoBadge = ({ estado }: { estado: EstadoPlantilla }) =>
-    estado === 'VERIFICADA' ? (
-        <Pildora className="bg-success/15 text-success">Verificada</Pildora>
-    ) : (
-        <Pildora className="bg-warning/15 text-warning">Sugerida</Pildora>
-    )

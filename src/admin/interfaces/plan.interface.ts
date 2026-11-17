@@ -11,6 +11,8 @@ export interface AdminPlan {
     maxUbicaciones: number | null
     maxDispositivos: number | null
     maxMensajesMes: number | null
+    /** Tickets de compra que la IA lee al mes. Null = ilimitado. */
+    maxTicketsMes: number | null
     modulos: string[]
     stripePriceMensual: string | null
     stripePriceAnual: string | null
@@ -42,6 +44,7 @@ export interface PlanPayload {
     maxUbicaciones: number | null
     maxDispositivos: number | null
     maxMensajesMes: number | null
+    maxTicketsMes: number | null
     modulos: string[]
     stripePriceMensual: string | null
     stripePriceAnual: string | null

@@ -39,11 +39,6 @@ export type ApiErrorCode =
     | "NOMBRE_INVALIDO"
     | "MENSAJES_INVALIDOS"
     | "AJUSTE_SALDO_INVALIDO"
-    // --- Plantillas de receta ---
-    | "PLANTILLA_RECETA_NOT_FOUND"
-    | "PLANTILLA_RECETA_INVALIDA"
-    | "PLANTILLA_RECETA_DUPLICADA"
-    | "MERMA_INVALIDA"
     // --- Métricas y finanzas ---
     | "RANGO_INVALIDO"
     | "AGRUPACION_INVALIDA"
@@ -107,10 +102,6 @@ export const API_ERROR_MESSAGES: Record<ApiErrorCode, string> = {
     NOMBRE_INVALIDO: "Escribe el nombre del paquete.",
     MENSAJES_INVALIDOS: "Los mensajes del paquete deben ser un entero mayor que cero.",
     AJUSTE_SALDO_INVALIDO: "El saldo no alcanza para descontar esa cantidad.",
-    PLANTILLA_RECETA_NOT_FOUND: "Esa plantilla ya no existe.",
-    PLANTILLA_RECETA_INVALIDA: "La fórmula de la plantilla no pasa la validación.",
-    PLANTILLA_RECETA_DUPLICADA: "Ya existe una plantilla con ese nombre en ese giro.",
-    MERMA_INVALIDA: "La merma de la plantilla no es válida.",
     RANGO_INVALIDO: "El rango de fechas no es válido.",
     AGRUPACION_INVALIDA: "Esa agrupación no es válida.",
     COSTO_NOT_FOUND: "Ese gasto ya no existe.",
@@ -148,11 +139,6 @@ const CODIGOS_CON_MENSAJE_DEL_SERVIDOR = new Set<ApiErrorCode>([
     "MODULO_INVALIDO",
     "LIMITE_INVALIDO",
     "PRECIO_INVALIDO",
-    // El mensaje del servidor nombra la regla incumplida (al importar, también la plantilla y el renglón)
-    // y, en la duplicada, aclara si la que choca está eliminada.
-    "PLANTILLA_RECETA_INVALIDA",
-    "PLANTILLA_RECETA_DUPLICADA",
-    "MERMA_INVALIDA",
     // Nombra qué falta o qué regla se incumple (el correo, la contraseña mínima, una cuenta con negocio…).
     "AGENTE_INVALIDO",
     // Dice qué sección o pregunta hay que corregir.

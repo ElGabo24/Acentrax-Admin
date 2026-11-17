@@ -1,4 +1,4 @@
-import { Building2, ChefHat, CreditCard, LogOut, MessageSquare, Package, Store, ToggleRight, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Building2, CreditCard, LogOut, MessageSquare, Package, ScanLine, Store, ToggleRight, TrendingUp, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -10,7 +10,7 @@ const SECCIONES: { to: string; etiqueta: string; icono: LucideIcon }[] = [
     { to: '/', etiqueta: 'Empresas', icono: Building2 },
     { to: '/planes', etiqueta: 'Planes', icono: Package },
     { to: '/paquetes-mensajes', etiqueta: 'Mensajes', icono: MessageSquare },
-    { to: '/recetas', etiqueta: 'Recetas', icono: ChefHat },
+    { to: '/tickets', etiqueta: 'Tickets', icono: ScanLine },
     { to: '/pagos', etiqueta: 'Pagos', icono: CreditCard },
     { to: '/finanzas', etiqueta: 'Finanzas', icono: TrendingUp },
     { to: '/prospectos', etiqueta: 'Prospectos', icono: Store },

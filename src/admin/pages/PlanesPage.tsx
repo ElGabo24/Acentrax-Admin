@@ -36,7 +36,7 @@ export const PlanesPage = () => {
                                 <th>Plan</th>
                                 <th className="text-right">Mensual</th>
                                 <th className="text-right">Anual</th>
-                                <th title="Usuarios / productos / ubicaciones / dispositivos con PIN / mensajes">Límites</th>
+                                <th title="Usuarios / productos / ubicaciones / dispositivos con PIN / mensajes / escaneos de ticket">Límites</th>
                                 <th>Módulos</th>
                                 <th className="text-right">Empresas</th>
                                 <th>Estado</th>
@@ -65,7 +65,7 @@ export const PlanesPage = () => {
                                     <td className="text-right tabular-nums">{dinero(p.precioMensual, p.moneda)}</td>
                                     <td className="text-right tabular-nums">{dinero(p.precioAnual, p.moneda)}</td>
                                     <td className="tabular-nums">
-                                        {[p.maxUsuarios, p.maxProductos, p.maxUbicaciones, p.maxDispositivos, p.maxMensajesMes].map(tope).join(' / ')}
+                                        {[p.maxUsuarios, p.maxProductos, p.maxUbicaciones, p.maxDispositivos, p.maxMensajesMes, p.maxTicketsMes].map(tope).join(' / ')}
                                     </td>
                                     <td className="text-muted-foreground">{p.modulos.length}</td>
                                     <td className="text-right tabular-nums">{p.empresas}</td>
