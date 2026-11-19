@@ -1,4 +1,4 @@
-import { Building2, CreditCard, LogOut, MessageSquare, Package, ScanLine, Store, ToggleRight, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Building2, CreditCard, LogOut, MessageSquare, Package, ReceiptText, ScanLine, Store, ToggleRight, TrendingUp, type LucideIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ const SECCIONES: { to: string; etiqueta: string; icono: LucideIcon }[] = [
     { to: '/planes', etiqueta: 'Planes', icono: Package },
     { to: '/paquetes-mensajes', etiqueta: 'Mensajes', icono: MessageSquare },
     { to: '/tickets', etiqueta: 'Tickets', icono: ScanLine },
+    { to: '/facturacion', etiqueta: 'Facturación', icono: ReceiptText },
     { to: '/pagos', etiqueta: 'Pagos', icono: CreditCard },
     { to: '/finanzas', etiqueta: 'Finanzas', icono: TrendingUp },
     { to: '/prospectos', etiqueta: 'Prospectos', icono: Store },

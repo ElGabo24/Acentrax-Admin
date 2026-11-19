@@ -61,6 +61,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
     const [maxDispositivos, setMaxDispositivos] = useState(texto(plan?.maxDispositivos))
     const [maxMensajesMes, setMaxMensajesMes] = useState(texto(plan?.maxMensajesMes))
     const [maxTicketsMes, setMaxTicketsMes] = useState(texto(plan?.maxTicketsMes))
+    const [maxTimbresMes, setMaxTimbresMes] = useState(texto(plan?.maxTimbresMes))
     const [modulos, setModulos] = useState<string[]>(plan?.modulos ?? [])
     const [stripeMensual, setStripeMensual] = useState(plan?.stripePriceMensual ?? '')
     const [stripeAnual, setStripeAnual] = useState(plan?.stripePriceAnual ?? '')
@@ -73,6 +74,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
     const topes = [maxUsuarios, maxProductos, maxUbicaciones, maxDispositivos].map(aNumeroONulo)
     const mensajes = aNumeroONulo(maxMensajesMes)
     const tickets = aNumeroONulo(maxTicketsMes)
+    const timbres = aNumeroONulo(maxTimbresMes)
     const ordenNum = Number(orden)
 
     // El primer problema que impide guardar, para mostrarlo bajo el formulario.
@@ -86,6 +88,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
         if (topes[3] !== null && !(Number.isInteger(topes[3]) && topes[3] > 0)) return 'Los dispositivos con PIN deben ser un entero mayor que cero, o vacío para ilimitado.'
         if (mensajes !== null && !(Number.isInteger(mensajes) && mensajes >= 0)) return 'Los mensajes incluidos deben ser un entero mayor o igual a cero, o vacío para ilimitado.'
         if (tickets !== null && !(Number.isInteger(tickets) && tickets > 0)) return 'Los escaneos de ticket deben ser un entero mayor que cero, o vacío para ilimitado.'
+        if (timbres !== null && !(Number.isInteger(timbres) && timbres > 0)) return 'Los timbres de facturación deben ser un entero mayor que cero, o vacío para ilimitado.'
         if (orden.trim() === '' || !Number.isInteger(ordenNum)) return 'El orden debe ser un número entero.'
         return null
     })()
@@ -113,6 +116,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
             maxDispositivos: topes[3],
             maxMensajesMes: mensajes,
             maxTicketsMes: tickets,
+            maxTimbresMes: timbres,
             modulos,
             stripePriceMensual: stripeMensual.trim() || null,
             stripePriceAnual: stripeAnual.trim() || null,
@@ -189,6 +193,7 @@ const Formulario = ({ plan, onClose }: { plan: AdminPlan | null; onClose: () => 
                         ['Dispositivos con PIN máx.', maxDispositivos, setMaxDispositivos],
                         ['Mensajes/mes', maxMensajesMes, setMaxMensajesMes],
                         ['Escaneos de ticket/mes', maxTicketsMes, setMaxTicketsMes],
+                        ['Timbres de factura/mes', maxTimbresMes, setMaxTimbresMes],
                     ] as const).map(([etiqueta, valor, set]) => (
                         <Campo key={etiqueta} etiqueta={etiqueta}>
                             <input

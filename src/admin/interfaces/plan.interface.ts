@@ -13,6 +13,8 @@ export interface AdminPlan {
     maxMensajesMes: number | null
     /** Tickets de compra que la IA lee al mes. Null = ilimitado. */
     maxTicketsMes: number | null
+    /** Timbres de facturación (CFDI) al mes. Null = ilimitado. */
+    maxTimbresMes: number | null
     modulos: string[]
     stripePriceMensual: string | null
     stripePriceAnual: string | null
@@ -45,6 +47,8 @@ export interface PlanPayload {
     maxDispositivos: number | null
     maxMensajesMes: number | null
     maxTicketsMes: number | null
+    /** Siempre se manda: el `PUT` reemplaza y un campo ausente lo dejaría sin tope. */
+    maxTimbresMes: number | null
     modulos: string[]
     stripePriceMensual: string | null
     stripePriceAnual: string | null

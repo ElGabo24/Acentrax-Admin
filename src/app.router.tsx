@@ -6,6 +6,7 @@ import { EmpresasPage } from './admin/pages/EmpresasPage'
 import { FinanzasPage } from './admin/pages/FinanzasPage'
 import { PagosPage } from './admin/pages/PagosPage'
 import { PaquetesMensajesPage } from './admin/pages/PaquetesMensajesPage'
+import { FacturacionPage } from './admin/pages/FacturacionPage'
 import { TicketsPage } from './admin/pages/TicketsPage'
 import { FlagsPage } from './admin/pages/FlagsPage'
 import { PlanesPage } from './admin/pages/PlanesPage'
@@ -35,6 +36,7 @@ export const appRouter = createBrowserRouter([
                     { path: '/paquetes-mensajes', element: <PaquetesMensajesPage /> },
                     { path: '/tickets', element: <TicketsPage /> },
                     { path: '/interruptores', element: <FlagsPage /> },
+                    { path: '/facturacion', element: <FacturacionPage /> },
                     { path: '/pagos', element: <PagosPage /> },
                     { path: '/finanzas', element: <FinanzasPage /> },
                     {
