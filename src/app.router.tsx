@@ -9,6 +9,7 @@ import { PaquetesMensajesPage } from './admin/pages/PaquetesMensajesPage'
 import { FacturacionPage } from './admin/pages/FacturacionPage'
 import { TicketsPage } from './admin/pages/TicketsPage'
 import { FlagsPage } from './admin/pages/FlagsPage'
+import { VersionesAppPage } from './admin/pages/VersionesAppPage'
 import { PlanesPage } from './admin/pages/PlanesPage'
 import { EmpresaDetallePage } from './admin/pages/EmpresaDetallePage'
 import { AgentesPage } from './admin/pages/AgentesPage'
@@ -34,6 +35,7 @@ export const appRouter = createBrowserRouter([
                     { path: '/empresas/:id', element: <EmpresaDetallePage /> },
                     { path: '/planes', element: <PlanesPage /> },
                     { path: '/paquetes-mensajes', element: <PaquetesMensajesPage /> },
+                    { path: '/versiones-app', element: <VersionesAppPage /> },
                     { path: '/tickets', element: <TicketsPage /> },
                     { path: '/interruptores', element: <FlagsPage /> },
                     { path: '/facturacion', element: <FacturacionPage /> },
