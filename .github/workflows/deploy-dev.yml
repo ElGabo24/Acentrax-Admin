@@ -30,7 +30,7 @@ jobs:
 
       - name: Compilar
         env:
-          VITE_API_URL: /api
+          VITE_API_URL: https://api.acentrax.com.mx/api-dev
         run: npm run build
 
       # Falla aquí y no a medio rsync si el build salió vacío.
